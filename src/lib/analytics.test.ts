@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { welfareStatus } from "./analytics";
+import { airQualityStatus, welfareStatus } from "./analytics";
 
 describe("welfareStatus", () => {
   it("is Green when intake is near baseline and gaps are short", () => {
@@ -16,5 +16,17 @@ describe("welfareStatus", () => {
   });
   it("is Red when intake is below 70% of baseline", () => {
     expect(welfareStatus(20, 30, 3)).toBe("Red");
+  });
+});
+
+describe("airQualityStatus", () => {
+  it("is good below every attention threshold", () => {
+    expect(airQualityStatus(900, 8, 18)).toBe("Hyvä");
+  });
+  it("requires attention when carbon dioxide exceeds 1,000 ppm", () => {
+    expect(airQualityStatus(1001, 8, 18)).toBe("Huomio");
+  });
+  it("is poor when ammonia exceeds 15 ppm", () => {
+    expect(airQualityStatus(900, 15.1, 18)).toBe("Heikko");
   });
 });

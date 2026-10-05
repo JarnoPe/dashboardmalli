@@ -11,3 +11,4 @@
 
 - Dashboard data comes from deterministic local generators in src/lib/mock-data.ts behind the async mock API in src/lib/api.ts; swap api.ts for real endpoints later without touching views.
 - Recharts colors are resolved from CSS tokens at runtime (useChartColors) because SVG attributes cannot read CSS variables.
+- New demo sensor domains must be exposed through src/lib/api.ts so views remain independent from deterministic generators and future real endpoints.
