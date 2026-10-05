@@ -127,7 +127,7 @@ export function getSleipData(name: string, from: number, to: number) {
     const wave = Math.sin((seed + index) * 1.7);
     return {
       t,
-      label: fmtDateTime(t).split(",")[0],
+      label: fmtDateTime(t).split(",")[0] ?? "",
       symmetry: round1(94.5 + wave * 1.7),
       stride: round1(2.82 + wave * 0.08),
       cadence: Math.round(82 + wave * 3),

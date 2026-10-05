@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { airQualityStatus, welfareStatus } from "./analytics";
+import { getSleipData } from "./api";
+import { ANCHOR, DAY } from "./mock-data";
 
 describe("welfareStatus", () => {
   it("is Green when intake is near baseline and gaps are short", () => {
@@ -28,5 +30,13 @@ describe("airQualityStatus", () => {
   });
   it("is poor when ammonia exceeds 15 ppm", () => {
     expect(airQualityStatus(900, 15.1, 18)).toBe("Heikko");
+  });
+});
+
+describe("SLEIP demo data", () => {
+  it("returns seven movement sessions for a seven-day range", () => {
+    const data = getSleipData("Antero", ANCHOR - 7 * DAY, ANCHOR);
+    expect(data.sessions).toHaveLength(7);
+    expect(data.latest.symmetry).toBeGreaterThan(90);
   });
 });
