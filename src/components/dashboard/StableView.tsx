@@ -6,10 +6,11 @@ import {
 } from "recharts";
 import { api } from "@/lib/api";
 import { useDashboard } from "@/lib/dashboard-store";
-import { C, LoadingGrid, Panel, StatCard, axisProps, heatColor, tooltipProps } from "./shared";
+import { useChartColors, LoadingGrid, Panel, StatCard, axisProps, heatColor, tooltipProps } from "./shared";
 
 export function StableView() {
   const { stable, from, to } = useDashboard();
+  const C = useChartColors();
   const { data } = useQuery({
     queryKey: ["stable", stable, from, to],
     queryFn: () => api.fetchStable(stable, from, to),

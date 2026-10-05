@@ -5,12 +5,12 @@ export type WelfareStatus = "Green" | "Yellow" | "Red";
 /**
  * Welfare rule: compares average daily intake to the horse's own baseline and
  * checks the longest gap between drinking events.
- * Red: intake < 70% of baseline or gap > 8 h. Yellow: intake < 85% or gap > 6 h.
+ * Red: intake < 70% of baseline or gap > 12 h. Yellow: intake < 85% or gap > 9 h.
  */
 export function welfareStatus(dailyAvg: number, baseline: number, longestGapHours: number): WelfareStatus {
   const ratio = dailyAvg / baseline;
-  if (ratio < 0.7 || longestGapHours > 8) return "Red";
-  if (ratio < 0.85 || longestGapHours > 6) return "Yellow";
+  if (ratio < 0.7 || longestGapHours > 12) return "Red";
+  if (ratio < 0.85 || longestGapHours > 9) return "Yellow";
   return "Green";
 }
 
@@ -110,7 +110,7 @@ export function insights(all: DrinkingEvent[], rangeEvents: DrinkingEvent[], to:
   if (morning >= evening) out.push({ tone: "info", text: `Drinking activity concentrated during morning hours (${Math.round(morning * 100)}% between 05–11).` });
   else out.push({ tone: "info", text: `Drinking activity concentrated during late afternoon (${Math.round(evening * 100)}% between 15–20).` });
   const gap = longestGapHours(rangeEvents);
-  if (gap > 6) out.push({ tone: "warn", text: `Longest interval without drinking was ${round1(gap)} h — review water access overnight.` });
+  if (gap > 9) out.push({ tone: "warn", text: `Longest interval without drinking was ${round1(gap)} h — review water access overnight.` });
   const days = new Set(rangeEvents.map((e) => dayKey(e.t))).size || 1;
   const ratio = sum(rangeEvents) / days / profile.baseline;
   if (ratio < 0.85) out.push({ tone: "warn", text: `Daily intake is ${Math.round(ratio * 100)}% of ${profile.name}'s baseline (${profile.baseline} L/day).` });

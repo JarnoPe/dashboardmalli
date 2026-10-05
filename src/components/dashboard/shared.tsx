@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-export const C = {
+// SVG attributes can't read CSS variables, so chart colors are resolved from the design tokens at runtime.
+const TOKENS = {
   bar: "var(--color-chart-bar)",
   line: "var(--color-chart-line)",
   area: "var(--color-chart-area)",
@@ -10,8 +11,23 @@ export const C = {
   grid: "var(--color-border)",
   axis: "var(--color-muted-foreground)",
 };
+export type ChartColors = typeof TOKENS;
+export function useChartColors(): ChartColors {
+  const [c, setC] = useState(TOKENS);
+  useEffect(() => {
+    const cs = getComputedStyle(document.documentElement);
+    const out = { ...TOKENS };
+    for (const k of Object.keys(TOKENS) as (keyof ChartColors)[]) {
+      const name = TOKENS[k].slice(4, -1);
+      out[k] = cs.getPropertyValue(name).trim() || TOKENS[k];
+    }
+    setC(out);
+  }, []);
+  return c;
+}
+export const C = TOKENS;
 
-export const axisProps = { stroke: C.axis, fontSize: 11, tickLine: false, axisLine: false } as const;
+export const axisProps = { stroke: "currentColor", className: "text-muted-foreground", fontSize: 11, tickLine: false, axisLine: false } as const;
 export const tooltipProps = {
   contentStyle: {
     background: "var(--color-popover)",

@@ -6,12 +6,13 @@ import {
 import { api } from "@/lib/api";
 import { useDashboard } from "@/lib/dashboard-store";
 import { cn } from "@/lib/utils";
-import { C, LoadingGrid, Panel, StatCard, axisProps, heatColor, tooltipProps } from "./shared";
+import { useChartColors, LoadingGrid, Panel, StatCard, axisProps, heatColor, tooltipProps } from "./shared";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export function HorseView() {
   const { horse, from, to } = useDashboard();
+  const C = useChartColors();
   const { data } = useQuery({
     queryKey: ["horse", horse, from, to],
     queryFn: () => api.fetchHorse(horse, from, to),
@@ -28,10 +29,10 @@ export function HorseView() {
         <StatCard label="Water consumed" value={s.litres} unit="L" hint={`${s.dailyAvg} L/day average`} icon={<Droplets className="size-4" />} />
         <StatCard label="Drinking events" value={s.events} hint="Recorded by trough sensor" icon={<Activity className="size-4" />} />
         <StatCard label="Avg event size" value={s.avgEvent} unit="L" hint="Litres per drinking event" icon={<Gauge className="size-4" />} />
-        <StatCard label="Longest without drinking" value={s.longestGap} unit="h" hint="Between consecutive events" icon={<Clock className="size-4" />} tone={s.longestGap > 6 ? "warn" : "default"} />
+        <StatCard label="Longest without drinking" value={s.longestGap} unit="h" hint="Between consecutive events" icon={<Clock className="size-4" />} tone={s.longestGap > 9 ? "warn" : "default"} />
         <StatCard
           label="Welfare status"
-          value={<span className="flex items-center gap-2"><span className={cn("size-3 rounded-full", `bg-status-${statusTone}`)} />{s.status}</span>}
+          value={<span className="flex items-center gap-2"><span className={cn("size-3 rounded-full", statusTone === "good" ? "bg-status-good" : statusTone === "warn" ? "bg-status-warn" : "bg-status-bad")} />{s.status}</span>}
           hint={`vs. baseline ${p.baseline} L/day`}
           icon={<HeartPulse className="size-4" />}
           tone={statusTone}
