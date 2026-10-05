@@ -1,24 +1,119 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Download, FileDown, Activity } from "lucide-react";
+import { DashboardProvider, useDashboard } from "@/lib/dashboard-store";
+import { FEATURED_HORSES, STABLES, type StableName } from "@/lib/mock-data";
+import { getHorseData, getStableData, type RangeKey } from "@/lib/api";
+import { fmtDay } from "@/lib/analytics";
+import { HorseView } from "@/components/dashboard/HorseView";
+import { StableView } from "@/components/dashboard/StableView";
+import { downloadCsv } from "@/components/dashboard/shared";
+import { cn } from "@/lib/utils";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Horse Welfare Dashboard — KP AlkIoT" },
+      { name: "description", content: "Monitor horse drinking behaviour and stable environment metrics for the KP AlkIoT horse welfare pilot." },
+      { property: "og:title", content: "Horse Welfare Dashboard — KP AlkIoT" },
+      { property: "og:description", content: "Drinking behaviour, welfare status and stable environment monitoring for horses." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: () => (
+    <DashboardProvider>
+      <Dashboard />
+    </DashboardProvider>
+  ),
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+const RANGES: { key: RangeKey; label: string }[] = [
+  { key: "24h", label: "Last 24 hours" },
+  { key: "7d", label: "Last 7 days" },
+  { key: "30d", label: "Last 30 days" },
+  { key: "custom", label: "Custom period" },
+];
+
+function Segmented<T extends string>({ value, options, onChange }: { value: T; options: { key: T; label: string }[]; onChange: (v: T) => void }) {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="inline-flex flex-wrap rounded-lg bg-muted p-1">
+      {options.map((o) => (
+        <button key={o.key} onClick={() => onChange(o.key)}
+          className={cn("rounded-md px-3 py-1.5 text-sm font-medium transition-all",
+            value === o.key ? "bg-card text-foreground shadow-card" : "text-muted-foreground hover:text-foreground")}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Dashboard() {
+  const d = useDashboard();
+
+  const exportCsv = () => {
+    if (d.view === "horse") {
+      const rows = getHorseData(d.horse, d.from, d.to).events.map((e) => ({ horse: e.horse, timestamp: e.timestamp, volumeLitres: e.volumeLitres, durationSeconds: e.durationSeconds }));
+      downloadCsv(`${d.horse}-drinking-events.csv`, rows);
+    } else {
+      const rows = getStableData(d.stable, d.from, d.to).events.map((e) => ({ horse: e.horse, timestamp: e.timestamp, volumeLitres: e.volumeLitres, durationSeconds: e.durationSeconds }));
+      downloadCsv(`${d.stable.replace(/\s+/g, "-")}-drinking-events.csv`, rows);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-20 border-b border-border bg-card/85 backdrop-blur">
+        <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 px-6 py-3">
+          <div className="flex items-center gap-3">
+            <div className="grid size-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow"><Activity className="size-5" /></div>
+            <div>
+              <h1 className="text-base font-bold tracking-tight text-foreground">Horse Welfare Dashboard</h1>
+              <p className="text-xs text-muted-foreground">KP AlkIoT · pilot monitoring</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Segmented value={d.range} options={RANGES} onChange={(range) => d.set({ range })} />
+            {d.range === "custom" && (
+              <div className="flex items-center gap-1.5 text-sm">
+                <input type="date" min="2026-09-05" max="2026-10-05" value={d.customFrom} onChange={(e) => d.set({ customFrom: e.target.value })} className="rounded-md border border-input bg-card px-2 py-1.5 text-foreground" />
+                <span className="text-muted-foreground">–</span>
+                <input type="date" min="2026-09-05" max="2026-10-05" value={d.customTo} onChange={(e) => d.set({ customTo: e.target.value })} className="rounded-md border border-input bg-card px-2 py-1.5 text-foreground" />
+              </div>
+            )}
+            <div className="no-print flex gap-2">
+              <button onClick={exportCsv} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"><Download className="size-4" />CSV</button>
+              <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-glow transition hover:opacity-90"><FileDown className="size-4" />Export PDF</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-[1500px] space-y-5 px-6 py-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Segmented value={d.view} options={[{ key: "horse", label: "Horse view" }, { key: "stable", label: "Stable view" }]} onChange={(view) => d.set({ view })} />
+            {d.view === "horse" ? (
+              <div className="flex flex-wrap gap-1.5">
+                {FEATURED_HORSES.map((h) => (
+                  <button key={h} onClick={() => d.set({ horse: h })}
+                    className={cn("rounded-full border px-3.5 py-1.5 text-sm font-medium transition",
+                      d.horse === h ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/50")}>
+                    {h}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <select value={d.stable} onChange={(e) => d.set({ stable: e.target.value as StableName })} className="rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground">
+                {STABLES.map((s) => <option key={s}>{s}</option>)}
+              </select>
+            )}
+          </div>
+          <span className="text-sm text-muted-foreground">{fmtDay(d.from)} – {fmtDay(d.to)} 2026</span>
+        </div>
+
+        {d.view === "horse" ? <HorseView /> : <StableView />}
+      </main>
     </div>
   );
 }
