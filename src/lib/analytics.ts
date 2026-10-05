@@ -1,6 +1,13 @@
 import { DAY, HOUR, type DrinkingEvent, type EnvReading, type HorseProfile } from "./mock-data";
 
 export type WelfareStatus = "Green" | "Yellow" | "Red";
+export type AirQualityStatus = "Hyvä" | "Huomio" | "Heikko";
+
+export function airQualityStatus(co2: number, ammonia: number, pm25: number): AirQualityStatus {
+  if (co2 > 1500 || ammonia > 15 || pm25 > 35) return "Heikko";
+  if (co2 > 1000 || ammonia > 10 || pm25 > 20) return "Huomio";
+  return "Hyvä";
+}
 
 /**
  * Welfare rule: compares average daily intake to the horse's own baseline and
@@ -134,17 +141,28 @@ export function pearson(xs: number[], ys: number[]) {
 }
 
 export function envDaily(env: EnvReading[], from: number, to: number) {
-  const map = new Map<number, { t: number; temp: number[]; hum: number[] }>();
+  const map = new Map<number, { t: number; temp: number[]; hum: number[]; co2: number[]; ammonia: number[]; pm25: number[] }>();
   for (const r of env) {
     if (r.t < from || r.t > to) continue;
     const k = dayKey(r.t);
-    const b = map.get(k) ?? { t: k, temp: [], hum: [] };
+    const b = map.get(k) ?? { t: k, temp: [], hum: [], co2: [], ammonia: [], pm25: [] };
     b.temp.push(r.temperature);
     b.hum.push(r.humidity);
+    b.co2.push(r.co2);
+    b.ammonia.push(r.ammonia);
+    b.pm25.push(r.pm25);
     map.set(k, b);
   }
   const avg = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
-  return [...map.values()].map((b) => ({ t: b.t, label: fmtDay(b.t), temperature: round1(avg(b.temp)), humidity: Math.round(avg(b.hum)) }));
+  return [...map.values()].map((b) => ({
+    t: b.t,
+    label: fmtDay(b.t),
+    temperature: round1(avg(b.temp)),
+    humidity: Math.round(avg(b.hum)),
+    co2: Math.round(avg(b.co2)),
+    ammonia: round1(avg(b.ammonia)),
+    pm25: round1(avg(b.pm25)),
+  }));
 }
 
 export const round1 = (n: number) => Math.round(n * 10) / 10;
