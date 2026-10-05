@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Dashboard data comes from deterministic local generators in src/lib/mock-data.ts behind the async mock API in src/lib/api.ts; swap api.ts for real endpoints later without touching views.
+- Recharts colors are resolved from CSS tokens at runtime (useChartColors) because SVG attributes cannot read CSS variables.
