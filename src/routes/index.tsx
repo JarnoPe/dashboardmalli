@@ -6,7 +6,6 @@ import { getHorseData, getSleipData, getStableData, type RangeKey } from "@/lib/
 import { fmtDay } from "@/lib/analytics";
 import { HorseView } from "@/components/dashboard/HorseView";
 import { StableView } from "@/components/dashboard/StableView";
-import { SleipView } from "@/components/dashboard/SleipView";
 import { downloadCsv } from "@/components/dashboard/shared";
 import { cn } from "@/lib/utils";
 
@@ -56,12 +55,11 @@ function Dashboard() {
     if (d.view === "horse") {
       const rows = getHorseData(d.horse, d.from, d.to).events.map((e) => ({ horse: e.horse, timestamp: e.timestamp, volumeLitres: e.volumeLitres, durationSeconds: e.durationSeconds }));
       downloadCsv(`${d.horse}-drinking-events.csv`, rows);
-    } else if (d.view === "stable") {
+      const sleipRows = getSleipData(d.horse, d.from, d.to).sessions.map((s) => ({ paiva: s.label, symmetriaProsenttia: s.symmetry, askelpituusMetreina: s.stride, kadenssi: s.cadence, aktiivisuus: s.activity }));
+      downloadCsv(`${d.horse}-sleip-demo.csv`, sleipRows);
+    } else {
       const rows = getStableData(d.stable, d.from, d.to).envSeries.map((e) => ({ aika: e.label, lampotilaC: e.temperature, ilmankosteusProsenttia: e.humidity, co2Ppm: e.co2, ammoniakkiPpm: e.ammonia, pm25: e.pm25 }));
       downloadCsv(`${d.stable.replace(/\s+/g, "-")}-ilmanlaatu.csv`, rows);
-    } else {
-      const rows = getSleipData(d.horse, d.from, d.to).sessions.map((s) => ({ paiva: s.label, symmetriaProsenttia: s.symmetry, askelpituusMetreina: s.stride, kadenssi: s.cadence, aktiivisuus: s.activity }));
-      downloadCsv(`${d.horse}-sleip-demo.csv`, rows);
     }
   };
 
@@ -96,7 +94,7 @@ function Dashboard() {
       <main className="mx-auto max-w-[1500px] space-y-5 px-6 py-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <Segmented value={d.view} options={[{ key: "horse", label: "Hevonen" }, { key: "stable", label: "Talli ja ilmanlaatu" }, { key: "sleip", label: "SLEIP-demo" }]} onChange={(view) => d.set({ view })} />
+            <Segmented value={d.view} options={[{ key: "horse", label: "Hevonen" }, { key: "stable", label: "Talli ja ilmanlaatu" }]} onChange={(view) => d.set({ view })} />
             {d.view !== "stable" ? (
               <div className="flex flex-wrap gap-1.5">
                 {FEATURED_HORSES.map((h) => (
@@ -116,7 +114,7 @@ function Dashboard() {
           <span className="text-sm text-muted-foreground">{fmtDay(d.from)} – {fmtDay(d.to)} 2026</span>
         </div>
 
-        {d.view === "horse" ? <HorseView /> : d.view === "stable" ? <StableView /> : <SleipView />}
+        {d.view === "horse" ? <HorseView /> : <StableView />}
       </main>
     </div>
   );
