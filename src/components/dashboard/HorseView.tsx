@@ -173,7 +173,70 @@ export function HorseView() {
           </div>
         </Panel>
       </div>
-      <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Thermometer className="size-3.5" />Ruumiinlämpö on viimeisimmästä manuaalisesta tarkastuksesta. Kaikki tiedot ovat simuloitua demodataa.</p>
+      {sleip && (
+        <>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">SLEIP Data Dashboard -demo</h2>
+            <p className="text-sm text-muted-foreground">Liikkeen symmetria, askelpituus, kadenssi ja aktiivisuus</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard label="Liikkeen symmetria" value={sleip.latest.symmetry} unit="%" hint="Viimeisin analyysi" icon={<MoveHorizontal className="size-4" />} tone="good" />
+            <StatCard label="Askelpituus" value={sleip.latest.stride} unit="m" hint="Ravin keskiarvo" icon={<Footprints className="size-4" />} />
+            <StatCard label="Kadenssi" value={sleip.latest.cadence} unit="askelta/min" hint="Tasainen rytmi" icon={<Gauge className="size-4" />} />
+            <StatCard label="Aktiivisuus" value={sleip.latest.activity} unit="/100" hint="Liikesensorin indeksi" icon={<Activity className="size-4" />} />
+          </div>
+          <Panel title="Liikeanalyysin yhteenveto" subtitle={`${sleip.profile.name} · SLEIP-demo`}>
+            <div className="flex items-start gap-3 rounded-md border border-status-good/30 bg-status-good/5 p-4"><Activity className="mt-0.5 size-5 shrink-0 text-status-good" /><p className="text-sm text-foreground">{sleip.observation}</p></div>
+          </Panel>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Panel title="Symmetrian kehitys" subtitle="100 % tarkoittaa täysin symmetristä liikettä">
+              <div className="h-72">
+                <ResponsiveContainer>
+                  <LineChart data={sleip.sessions} margin={{ top: 5, right: 8, left: -12, bottom: 0 }}>
+                    <CartesianGrid stroke={C.grid} vertical={false} />
+                    <XAxis dataKey="label" {...axisProps} />
+                    <YAxis {...axisProps} domain={[88, 100]} unit=" %" />
+                    <Tooltip {...tooltipProps} />
+                    <Line dataKey="symmetry" name="Symmetria" stroke={C.teal} strokeWidth={2.5} dot={{ r: 3 }} type="monotone" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Panel>
+            <Panel title="Askel ja aktiivisuus" subtitle="Harjoituskertojen vertailu">
+              <div className="h-72">
+                <ResponsiveContainer>
+                  <LineChart data={sleip.sessions} margin={{ top: 5, right: 8, left: -12, bottom: 0 }}>
+                    <CartesianGrid stroke={C.grid} vertical={false} />
+                    <XAxis dataKey="label" {...axisProps} />
+                    <YAxis yAxisId="stride" {...axisProps} domain={[2.5, 3.1]} />
+                    <YAxis yAxisId="activity" orientation="right" {...axisProps} domain={[50, 100]} />
+                    <Tooltip {...tooltipProps} />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+                    <Line yAxisId="stride" dataKey="stride" name="Askelpituus (m)" stroke={C.bar} strokeWidth={2.5} dot={false} />
+                    <Line yAxisId="activity" dataKey="activity" name="Aktiivisuus" stroke={C.warm} strokeWidth={2.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Panel>
+            <Panel title="Vasen–oikea-vertailu" subtitle="Isku ja ponnistus, osuus kokonaisliikkeestä" className="lg:col-span-2">
+              <div className="h-64">
+                <ResponsiveContainer>
+                  <BarChart data={sleip.leftRight} margin={{ top: 5, right: 8, left: -12, bottom: 0 }}>
+                    <CartesianGrid stroke={C.grid} vertical={false} />
+                    <XAxis dataKey="side" {...axisProps} />
+                    <YAxis {...axisProps} domain={[0, 60]} unit=" %" />
+                    <Tooltip {...tooltipProps} />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="impact" name="Isku" fill={C.bar} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="pushOff" name="Ponnistus" fill={C.teal} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Panel>
+          </div>
+        </>
+      )}
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Thermometer className="size-3.5" />Ruumiinlämpö on viimeisimmästä manuaalisesta tarkastuksesta. SLEIP-luvut ovat simuloitua demodataa, eivät eläinlääketieteellinen diagnoosi.</p>
     </div>
   );
 }

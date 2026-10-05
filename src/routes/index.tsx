@@ -6,7 +6,6 @@ import { getHorseData, getSleipData, getStableData, type RangeKey } from "@/lib/
 import { fmtDay } from "@/lib/analytics";
 import { HorseView } from "@/components/dashboard/HorseView";
 import { StableView } from "@/components/dashboard/StableView";
-import { SleipView } from "@/components/dashboard/SleipView";
 import { downloadCsv } from "@/components/dashboard/shared";
 import { cn } from "@/lib/utils";
 
