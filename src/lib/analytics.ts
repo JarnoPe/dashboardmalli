@@ -28,7 +28,7 @@ export function longestGapHours(events: DrinkingEvent[]) {
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS = ["tammi", "helmi", "maalis", "huhti", "touko", "kesä", "heinä", "elo", "syys", "loka", "marras", "joulu"];
 export const fmtDay = (t: number) => {
   const d = new Date(t);
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`;
@@ -107,21 +107,21 @@ export function insights(all: DrinkingEvent[], rangeEvents: DrinkingEvent[], to:
   const prevWeek = sum(all.filter((e) => e.t > to - 14 * DAY && e.t <= to - 7 * DAY));
   if (prevWeek > 0) {
     const pct = Math.round(((thisWeek - prevWeek) / prevWeek) * 100);
-    if (Math.abs(pct) < 5) out.push({ tone: "good", text: `Water consumption stable compared to previous week (${pct >= 0 ? "+" : ""}${pct}%).` });
-    else out.push({ tone: pct < -10 ? "warn" : "info", text: `Water consumption ${pct < 0 ? "decreased" : "increased"} ${Math.abs(pct)}% compared to previous week.` });
+    if (Math.abs(pct) < 5) out.push({ tone: "good", text: `Vedenkulutus on pysynyt vakaana edelliseen viikkoon verrattuna (${pct >= 0 ? "+" : ""}${pct} %).` });
+    else out.push({ tone: pct < -10 ? "warn" : "info", text: `Vedenkulutus ${pct < 0 ? "väheni" : "kasvoi"} ${Math.abs(pct)} % edelliseen viikkoon verrattuna.` });
   }
   const hours = hourTotals(rangeEvents);
   const total = hours.reduce((a, b) => a + b, 0) || 1;
   const morning = hours.slice(5, 11).reduce((a, b) => a + b, 0) / total;
   const evening = hours.slice(15, 20).reduce((a, b) => a + b, 0) / total;
-  if (morning >= evening) out.push({ tone: "info", text: `Drinking activity concentrated during morning hours (${Math.round(morning * 100)}% between 05–11).` });
-  else out.push({ tone: "info", text: `Drinking activity concentrated during late afternoon (${Math.round(evening * 100)}% between 15–20).` });
+  if (morning >= evening) out.push({ tone: "info", text: `Juominen painottui aamutunteihin (${Math.round(morning * 100)} % klo 05–11).` });
+  else out.push({ tone: "info", text: `Juominen painottui myöhäiseen iltapäivään (${Math.round(evening * 100)} % klo 15–20).` });
   const gap = longestGapHours(rangeEvents);
-  if (gap > 9) out.push({ tone: "warn", text: `Longest interval without drinking was ${round1(gap)} h — review water access overnight.` });
+  if (gap > 9) out.push({ tone: "warn", text: `Pisin juomaton jakso oli ${round1(gap)} h — tarkista veden saatavuus yöaikaan.` });
   const days = new Set(rangeEvents.map((e) => dayKey(e.t))).size || 1;
   const ratio = sum(rangeEvents) / days / profile.baseline;
-  if (ratio < 0.85) out.push({ tone: "warn", text: `Daily intake is ${Math.round(ratio * 100)}% of ${profile.name}'s baseline (${profile.baseline} L/day).` });
-  if (!out.some((o) => o.tone === "warn")) out.push({ tone: "good", text: "No welfare anomalies detected." });
+  if (ratio < 0.85) out.push({ tone: "warn", text: `Päivittäinen vedenkulutus on ${Math.round(ratio * 100)} % hevosen ${profile.name} perustasosta (${profile.baseline} l/vrk).` });
+  if (!out.some((o) => o.tone === "warn")) out.push({ tone: "good", text: "Hyvinvoinnissa ei havaittu poikkeamia." });
   return out;
 }
 

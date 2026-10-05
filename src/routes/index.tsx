@@ -2,20 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Download, FileDown, Activity } from "lucide-react";
 import { DashboardProvider, useDashboard } from "@/lib/dashboard-store";
 import { FEATURED_HORSES, STABLES, type StableName } from "@/lib/mock-data";
-import { getHorseData, getStableData, type RangeKey } from "@/lib/api";
+import { getHorseData, getSleipData, getStableData, type RangeKey } from "@/lib/api";
 import { fmtDay } from "@/lib/analytics";
 import { HorseView } from "@/components/dashboard/HorseView";
 import { StableView } from "@/components/dashboard/StableView";
+import { SleipView } from "@/components/dashboard/SleipView";
 import { downloadCsv } from "@/components/dashboard/shared";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Horse Welfare Dashboard — KP AlkIoT" },
-      { name: "description", content: "Monitor horse drinking behaviour and stable environment metrics for the KP AlkIoT horse welfare pilot." },
-      { property: "og:title", content: "Horse Welfare Dashboard — KP AlkIoT" },
-      { property: "og:description", content: "Drinking behaviour, welfare status and stable environment monitoring for horses." },
+      { title: "Hevosten hyvinvoinnin mittaristo — KP AlkIoT" },
+      { name: "description", content: "Hevosten hyvinvoinnin, tallin ilmanlaadun ja liikkeen seurannan KP AlkIoT -demo." },
+      { property: "og:title", content: "Hevosten hyvinvoinnin mittaristo — KP AlkIoT" },
+      { property: "og:description", content: "Tallin ilmanlaadun, juomisen ja hevosten liikkeen seuranta yhdessä näkymässä." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -28,10 +29,10 @@ export const Route = createFileRoute("/")({
 });
 
 const RANGES: { key: RangeKey; label: string }[] = [
-  { key: "24h", label: "Last 24 hours" },
-  { key: "7d", label: "Last 7 days" },
-  { key: "30d", label: "Last 30 days" },
-  { key: "custom", label: "Custom period" },
+  { key: "24h", label: "Viimeiset 24 tuntia" },
+  { key: "7d", label: "Viimeiset 7 päivää" },
+  { key: "30d", label: "Viimeiset 30 päivää" },
+  { key: "custom", label: "Mukautettu jakso" },
 ];
 
 function Segmented<T extends string>({ value, options, onChange }: { value: T; options: { key: T; label: string }[]; onChange: (v: T) => void }) {
@@ -55,9 +56,12 @@ function Dashboard() {
     if (d.view === "horse") {
       const rows = getHorseData(d.horse, d.from, d.to).events.map((e) => ({ horse: e.horse, timestamp: e.timestamp, volumeLitres: e.volumeLitres, durationSeconds: e.durationSeconds }));
       downloadCsv(`${d.horse}-drinking-events.csv`, rows);
+    } else if (d.view === "stable") {
+      const rows = getStableData(d.stable, d.from, d.to).envSeries.map((e) => ({ aika: e.label, lampotilaC: e.temperature, ilmankosteusProsenttia: e.humidity, co2Ppm: e.co2, ammoniakkiPpm: e.ammonia, pm25: e.pm25 }));
+      downloadCsv(`${d.stable.replace(/\s+/g, "-")}-ilmanlaatu.csv`, rows);
     } else {
-      const rows = getStableData(d.stable, d.from, d.to).events.map((e) => ({ horse: e.horse, timestamp: e.timestamp, volumeLitres: e.volumeLitres, durationSeconds: e.durationSeconds }));
-      downloadCsv(`${d.stable.replace(/\s+/g, "-")}-drinking-events.csv`, rows);
+      const rows = getSleipData(d.horse, d.from, d.to).sessions.map((s) => ({ paiva: s.label, symmetriaProsenttia: s.symmetry, askelpituusMetreina: s.stride, kadenssi: s.cadence, aktiivisuus: s.activity }));
+      downloadCsv(`${d.horse}-sleip-demo.csv`, rows);
     }
   };
 
@@ -68,8 +72,8 @@ function Dashboard() {
           <div className="flex items-center gap-3">
             <div className="grid size-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow"><Activity className="size-5" /></div>
             <div>
-              <h1 className="text-base font-bold tracking-tight text-foreground">Horse Welfare Dashboard</h1>
-              <p className="text-xs text-muted-foreground">KP AlkIoT · pilot monitoring</p>
+              <h1 className="text-base font-bold tracking-tight text-foreground">Hevosten hyvinvoinnin mittaristo</h1>
+              <p className="text-xs text-muted-foreground">KP AlkIoT · pilottiseuranta</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -83,7 +87,7 @@ function Dashboard() {
             )}
             <div className="no-print flex gap-2">
               <button onClick={exportCsv} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"><Download className="size-4" />CSV</button>
-              <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-glow transition hover:opacity-90"><FileDown className="size-4" />Export PDF</button>
+              <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-glow transition hover:opacity-90"><FileDown className="size-4" />Vie PDF</button>
             </div>
           </div>
         </div>
@@ -92,8 +96,8 @@ function Dashboard() {
       <main className="mx-auto max-w-[1500px] space-y-5 px-6 py-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <Segmented value={d.view} options={[{ key: "horse", label: "Horse view" }, { key: "stable", label: "Stable view" }]} onChange={(view) => d.set({ view })} />
-            {d.view === "horse" ? (
+            <Segmented value={d.view} options={[{ key: "horse", label: "Hevonen" }, { key: "stable", label: "Talli ja ilmanlaatu" }, { key: "sleip", label: "SLEIP-demo" }]} onChange={(view) => d.set({ view })} />
+            {d.view !== "stable" ? (
               <div className="flex flex-wrap gap-1.5">
                 {FEATURED_HORSES.map((h) => (
                   <button key={h} onClick={() => d.set({ horse: h })}
@@ -112,7 +116,7 @@ function Dashboard() {
           <span className="text-sm text-muted-foreground">{fmtDay(d.from)} – {fmtDay(d.to)} 2026</span>
         </div>
 
-        {d.view === "horse" ? <HorseView /> : <StableView />}
+        {d.view === "horse" ? <HorseView /> : d.view === "stable" ? <StableView /> : <SleipView />}
       </main>
     </div>
   );
