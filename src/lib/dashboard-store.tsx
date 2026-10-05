@@ -1,3 +1,4 @@
+import type React from "react";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { resolveRange, type RangeKey } from "./api";
 import type { StableName } from "./mock-data";
@@ -17,7 +18,9 @@ interface Ctx extends State {
   to: number;
 }
 
-const DashboardContext = createContext<Ctx | null>(null);
+// Keep a single context instance across hot reloads so provider and consumers always match.
+const g = globalThis as unknown as { __dashboardCtx?: React.Context<Ctx | null> };
+const DashboardContext = (g.__dashboardCtx ??= createContext<Ctx | null>(null));
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>({
