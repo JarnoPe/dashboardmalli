@@ -3,7 +3,7 @@ import { resolveRange, type RangeKey } from "./api";
 import type { StableName } from "./mock-data";
 
 interface State {
-  view: "horse" | "stable";
+  view: "horse" | "stable" | "sleip";
   range: RangeKey;
   customFrom: string;
   customTo: string;

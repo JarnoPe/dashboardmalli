@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { welfareStatus } from "./analytics";
+import { airQualityStatus, welfareStatus } from "./analytics";
+import { getSleipData } from "./api";
+import { ANCHOR, DAY } from "./mock-data";
 
 describe("welfareStatus", () => {
   it("is Green when intake is near baseline and gaps are short", () => {
@@ -16,5 +18,25 @@ describe("welfareStatus", () => {
   });
   it("is Red when intake is below 70% of baseline", () => {
     expect(welfareStatus(20, 30, 3)).toBe("Red");
+  });
+});
+
+describe("airQualityStatus", () => {
+  it("is good below every attention threshold", () => {
+    expect(airQualityStatus(900, 8, 18)).toBe("Hyvä");
+  });
+  it("requires attention when carbon dioxide exceeds 1,000 ppm", () => {
+    expect(airQualityStatus(1001, 8, 18)).toBe("Huomio");
+  });
+  it("is poor when ammonia exceeds 15 ppm", () => {
+    expect(airQualityStatus(900, 15.1, 18)).toBe("Heikko");
+  });
+});
+
+describe("SLEIP demo data", () => {
+  it("returns seven movement sessions for a seven-day range", () => {
+    const data = getSleipData("Antero", ANCHOR - 7 * DAY, ANCHOR);
+    expect(data.sessions).toHaveLength(7);
+    expect(data.latest.symmetry).toBeGreaterThan(90);
   });
 });

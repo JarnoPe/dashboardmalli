@@ -1,7 +1,7 @@
 // Mock API layer: async functions shaped like real backend calls, served from local test data.
 import { ANCHOR, DATA_START, DAY, ENV, EVENTS, HORSES, HOUR, type StableName } from "./mock-data";
 import {
-  dailyBuckets, envDaily, fmtDateTime, fmtTime, histogram, hourTotals, insights, movingAverage,
+  airQualityStatus, dailyBuckets, envDaily, fmtDateTime, fmtTime, histogram, hourTotals, insights, movingAverage,
   pearson, round1, summarize, weekdayHourGrid,
 } from "./analytics";
 
@@ -71,7 +71,7 @@ export function getStableData(stable: StableName, from: number, to: number) {
   const envRange = ENV.filter((r) => r.stable === stable && r.t >= from && r.t <= to);
   const shortRange = to - from <= 2 * DAY;
   const envSeries = shortRange
-    ? envRange.map((r) => ({ label: fmtTime(r.t), temperature: r.temperature, humidity: r.humidity }))
+    ? envRange.map((r) => ({ label: fmtTime(r.t), temperature: r.temperature, humidity: r.humidity, co2: r.co2, ammonia: r.ammonia, pm25: r.pm25 }))
     : envDaily(envRange, from, to);
 
   // Correlation: hourly stable consumption vs temperature (hourly for short ranges, daily otherwise)
@@ -113,13 +113,46 @@ export function getStableData(stable: StableName, from: number, to: number) {
     corrTemp: Math.round(pearson(corr.map((c) => c.temperature), corr.map((c) => c.litres)) * 100) / 100,
     corrHum: Math.round(pearson(corr.map((c) => c.humidity), corr.map((c) => c.litres)) * 100) / 100,
     latestEnv: latest,
+    airStatus: latest ? airQualityStatus(latest.co2, latest.ammonia, latest.pm25) : "Hyvä",
+  };
+}
+
+export function getSleipData(name: string, from: number, to: number) {
+  const profile = HORSES.find((h) => h.name === name);
+  if (!profile) throw new Error("Hevosta ei löytynyt");
+  const days = Math.max(1, Math.ceil((to - from) / DAY));
+  const seed = [...name].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const sessions = Array.from({ length: Math.min(days, 14) }, (_, index) => {
+    const t = to - (Math.min(days, 14) - 1 - index) * DAY;
+    const wave = Math.sin((seed + index) * 1.7);
+    return {
+      t,
+      label: fmtDateTime(t).split(",")[0] ?? "",
+      symmetry: round1(94.5 + wave * 1.7),
+      stride: round1(2.82 + wave * 0.08),
+      cadence: Math.round(82 + wave * 3),
+      activity: Math.round(profile.activityScore + wave * 4),
+    };
+  });
+  const latest = sessions[sessions.length - 1];
+  return {
+    profile,
+    sessions,
+    latest: latest ?? { symmetry: 0, stride: 0, cadence: 0, activity: 0 },
+    leftRight: [
+      { side: "Vasen", impact: round1(50.6 + (seed % 5) * 0.2), pushOff: round1(49.8 + (seed % 3) * 0.3) },
+      { side: "Oikea", impact: round1(49.4 - (seed % 5) * 0.2), pushOff: round1(50.2 - (seed % 3) * 0.3) },
+    ],
+    observation: "Liike on tasapainoista, eikä merkittävää puolieroa havaittu valitulla jaksolla.",
   };
 }
 
 export const api = {
   fetchHorse: (name: string, from: number, to: number) => delay(getHorseData(name, from, to)),
   fetchStable: (stable: StableName, from: number, to: number) => delay(getStableData(stable, from, to)),
+  fetchSleip: (name: string, from: number, to: number) => delay(getSleipData(name, from, to)),
 };
 
 export type HorseData = ReturnType<typeof getHorseData>;
 export type StableData = ReturnType<typeof getStableData>;
+export type SleipData = ReturnType<typeof getSleipData>;

@@ -35,6 +35,9 @@ export interface EnvReading {
   t: number;
   temperature: number;
   humidity: number;
+  co2: number;
+  ammonia: number;
+  pm25: number;
 }
 
 export const HORSES: HorseProfile[] = [
@@ -121,7 +124,19 @@ function generateEnv(): EnvReading[] {
       const seasonal = -day * 0.08; // cooling into October
       const temp = base[s] + seasonal + drift + 3.2 * Math.sin(((hour - 9) / 24) * 2 * Math.PI) + (rand() - 0.5) * 0.6;
       const hum = Math.min(95, Math.max(40, 72 - (temp - base[s]) * 2.6 + (rand() - 0.5) * 4));
-      out.push({ stable: s, t, temperature: Math.round(temp * 10) / 10, humidity: Math.round(hum) });
+      const occupancy = HOUR_WEIGHTS[hour] ?? 1;
+      const co2 = 610 + occupancy * 155 + si * 45 + (rand() - 0.5) * 90;
+      const ammonia = 2.8 + occupancy * 1.45 + si * 0.5 + (rand() - 0.5) * 1.2;
+      const pm25 = 5.5 + occupancy * 2.7 + si * 1.2 + (rand() - 0.5) * 3;
+      out.push({
+        stable: s,
+        t,
+        temperature: Math.round(temp * 10) / 10,
+        humidity: Math.round(hum),
+        co2: Math.round(co2),
+        ammonia: Math.round(ammonia * 10) / 10,
+        pm25: Math.round(pm25 * 10) / 10,
+      });
     }
   });
   return out;

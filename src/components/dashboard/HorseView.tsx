@@ -8,7 +8,7 @@ import { useDashboard } from "@/lib/dashboard-store";
 import { cn } from "@/lib/utils";
 import { useChartColors, LoadingGrid, Panel, StatCard, axisProps, heatColor, tooltipProps } from "./shared";
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKDAYS = ["ma", "ti", "ke", "to", "pe", "la", "su"];
 
 export function HorseView() {
   const { horse, from, to } = useDashboard();
@@ -26,21 +26,21 @@ export function HorseView() {
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard label="Water consumed" value={s.litres} unit="L" hint={`${s.dailyAvg} L/day average`} icon={<Droplets className="size-4" />} />
-        <StatCard label="Drinking events" value={s.events} hint="Recorded by trough sensor" icon={<Activity className="size-4" />} />
-        <StatCard label="Avg event size" value={s.avgEvent} unit="L" hint="Litres per drinking event" icon={<Gauge className="size-4" />} />
-        <StatCard label="Longest without drinking" value={s.longestGap} unit="h" hint="Between consecutive events" icon={<Clock className="size-4" />} tone={s.longestGap > 9 ? "warn" : "default"} />
+        <StatCard label="Vettä juotu" value={s.litres} unit="l" hint={`${s.dailyAvg} l/vrk keskimäärin`} icon={<Droplets className="size-4" />} />
+        <StatCard label="Juomakertoja" value={s.events} hint="Juomakupin anturin mittaama" icon={<Activity className="size-4" />} />
+        <StatCard label="Keskimääräinen juomamäärä" value={s.avgEvent} unit="l" hint="Litraa juomakertaa kohti" icon={<Gauge className="size-4" />} />
+        <StatCard label="Pisin juomaton aika" value={s.longestGap} unit="h" hint="Peräkkäisten juomakertojen väli" icon={<Clock className="size-4" />} tone={s.longestGap > 9 ? "warn" : "default"} />
         <StatCard
-          label="Welfare status"
-          value={<span className="flex items-center gap-2"><span className={cn("size-3 rounded-full", statusTone === "good" ? "bg-status-good" : statusTone === "warn" ? "bg-status-warn" : "bg-status-bad")} />{s.status}</span>}
-          hint={`vs. baseline ${p.baseline} L/day`}
+          label="Hyvinvoinnin tila"
+          value={<span className="flex items-center gap-2"><span className={cn("size-3 rounded-full", statusTone === "good" ? "bg-status-good" : statusTone === "warn" ? "bg-status-warn" : "bg-status-bad")} />{{ Green: "Hyvä", Yellow: "Huomio", Red: "Hälytys" }[s.status]}</span>}
+          hint={`Perustaso ${p.baseline} l/vrk`}
           icon={<HeartPulse className="size-4" />}
           tone={statusTone}
         />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-4">
-        <Panel title="Water Consumption Timeline" subtitle="Litres per drinking event and cumulative consumption" className="xl:col-span-3">
+        <Panel title="Vedenkulutuksen aikajana" subtitle="Juomakertojen määrä ja kumulatiivinen kulutus" className="xl:col-span-3">
           <div className="h-80">
             <ResponsiveContainer>
               <ComposedChart data={data.timeline} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
@@ -50,14 +50,14 @@ export function HorseView() {
                 <YAxis yAxisId="c" orientation="right" {...axisProps} unit=" L" />
                 <Tooltip {...tooltipProps} formatter={(v: number, n) => [`${v} L`, n]} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-                <Bar yAxisId="l" dataKey="litres" name="Event volume" fill={C.bar} radius={[3, 3, 0, 0]} maxBarSize={14} />
-                <Line yAxisId="c" dataKey="cumulative" name="Cumulative" stroke={C.line} strokeWidth={2.5} dot={false} type="monotone" />
+                <Bar yAxisId="l" dataKey="litres" name="Juomamäärä" fill={C.bar} radius={[3, 3, 0, 0]} maxBarSize={14} />
+                <Line yAxisId="c" dataKey="cumulative" name="Kertymä" stroke={C.line} strokeWidth={2.5} dot={false} type="monotone" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
         </Panel>
 
-        <Panel title="Horse profile" subtitle={`Sensor ${p.sensorId}`}>
+        <Panel title="Hevosen tiedot" subtitle={`Anturi ${p.sensorId}`}>
           <div className="mb-4 flex items-center gap-3">
             <div className="grid size-12 place-items-center rounded-full bg-primary text-lg font-bold text-primary-foreground">{p.name[0]}</div>
             <div>
@@ -67,9 +67,9 @@ export function HorseView() {
           </div>
           <dl className="space-y-2.5 text-sm">
             {[
-              ["Age", `${p.age} years`],
-              ["Stable", p.stable],
-              ["Last temperature", `${p.temperature} °C`],
+              ["Ikä", `${p.age} vuotta`],
+              ["Talli", p.stable],
+              ["Viimeisin lämpötila", `${p.temperature} °C`],
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between border-b border-border pb-2">
                 <dt className="text-muted-foreground">{k}</dt>
@@ -79,7 +79,7 @@ export function HorseView() {
           </dl>
           <div className="mt-4">
             <div className="mb-1.5 flex justify-between text-sm">
-              <span className="text-muted-foreground">Activity score</span>
+              <span className="text-muted-foreground">Aktiivisuusindeksi</span>
               <span className="font-semibold text-foreground">{p.activityScore}/100</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -89,7 +89,7 @@ export function HorseView() {
         </Panel>
       </div>
 
-      <Panel title="Welfare insights" subtitle="Automatically generated observations">
+      <Panel title="Hyvinvointihavainnot" subtitle="Automaattisesti muodostetut havainnot">
         <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {data.insights.map((i) => (
             <li key={i.text} className={cn("flex gap-2.5 rounded-lg border p-3 text-sm",
@@ -104,7 +104,7 @@ export function HorseView() {
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Drinking Events per Day">
+        <Panel title="Juomakerrat päivittäin">
           <div className="h-64">
             <ResponsiveContainer>
               <BarChart data={data.daily} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -112,13 +112,13 @@ export function HorseView() {
                 <XAxis dataKey="label" {...axisProps} minTickGap={20} />
                 <YAxis {...axisProps} allowDecimals={false} />
                 <Tooltip {...tooltipProps} />
-                <Bar dataKey="events" name="Events" fill={C.bar} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="events" name="Juomakerrat" fill={C.bar} radius={[4, 4, 0, 0]} maxBarSize={28} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Panel>
 
-        <Panel title="Water Consumption Trend" subtitle="Daily litres with 7-day moving average">
+        <Panel title="Vedenkulutuksen kehitys" subtitle="Päivittäiset litrat ja seitsemän päivän liukuva keskiarvo">
           <div className="h-64">
             <ResponsiveContainer>
               <LineChart data={data.daily} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
@@ -127,14 +127,14 @@ export function HorseView() {
                 <YAxis {...axisProps} unit=" L" />
                 <Tooltip {...tooltipProps} formatter={(v: number, n) => [`${v} L`, n]} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-                <Line dataKey="litres" name="Daily" stroke={C.bar} strokeOpacity={0.45} strokeWidth={1.5} dot={{ r: 2 }} />
-                <Line dataKey="avg" name="7-day average" stroke={C.line} strokeWidth={2.5} dot={false} type="monotone" />
+                <Line dataKey="litres" name="Päivittäin" stroke={C.bar} strokeOpacity={0.45} strokeWidth={1.5} dot={{ r: 2 }} />
+                <Line dataKey="avg" name="7 päivän keskiarvo" stroke={C.line} strokeWidth={2.5} dot={false} type="monotone" />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </Panel>
 
-        <Panel title="Hourly Drinking Pattern" subtitle="Litres by weekday and hour (0–23)">
+        <Panel title="Juomisen tuntijakauma" subtitle="Litrat viikonpäivän ja tunnin mukaan (0–23)">
           <div className="overflow-x-auto">
             <div className="min-w-[520px]">
               {data.grid.map((row, d) => (
@@ -154,7 +154,7 @@ export function HorseView() {
           </div>
         </Panel>
 
-        <Panel title="Drinking Event Distribution" subtitle="Number of events by volume (L)">
+        <Panel title="Juomakertojen jakauma" subtitle="Juomakertojen määrä tilavuuden mukaan (l)">
           <div className="h-64">
             <ResponsiveContainer>
               <BarChart data={data.histogram} barCategoryGap={2} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -162,13 +162,13 @@ export function HorseView() {
                 <XAxis dataKey="label" {...axisProps} interval={1} />
                 <YAxis {...axisProps} allowDecimals={false} />
                 <Tooltip {...tooltipProps} labelFormatter={(l) => `${l} L`} />
-                <Bar dataKey="count" name="Events" fill={C.area} radius={[3, 3, 0, 0]} />
+                <Bar dataKey="count" name="Juomakerrat" fill={C.area} radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Panel>
       </div>
-      <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Thermometer className="size-3.5" />Body temperature from latest manual check. All data is simulated test data.</p>
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Thermometer className="size-3.5" />Ruumiinlämpö on viimeisimmästä manuaalisesta tarkastuksesta. Kaikki tiedot ovat simuloitua demodataa.</p>
     </div>
   );
 }
