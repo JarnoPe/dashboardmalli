@@ -51,6 +51,17 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-chart-bar: var(--chart-bar);
+  --color-chart-line: var(--chart-line);
+  --color-chart-area: var(--chart-area);
+  --color-chart-warm: var(--chart-warm);
+  --color-chart-teal: var(--chart-teal);
+  --color-status-good: var(--status-good);
+  --color-status-warn: var(--status-warn);
+  --color-status-bad: var(--status-bad);
+  --shadow-card: var(--shadow-card);
+  --shadow-glow: var(--shadow-glow);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -62,15 +73,26 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --radius: 0.75rem;
+  --background: oklch(0.975 0.006 250);
+  --chart-bar: oklch(0.6 0.19 255);
+  --chart-line: oklch(0.55 0.2 295);
+  --chart-area: oklch(0.8 0.09 245);
+  --chart-warm: oklch(0.68 0.17 45);
+  --chart-teal: oklch(0.65 0.12 195);
+  --status-good: oklch(0.65 0.16 150);
+  --status-warn: oklch(0.75 0.16 75);
+  --status-bad: oklch(0.6 0.22 25);
+  --shadow-card: 0 1px 2px oklch(0.3 0.03 255 / 0.04), 0 4px 16px -4px oklch(0.3 0.03 255 / 0.08);
+  --shadow-glow: 0 6px 18px -6px oklch(0.6 0.19 255 / 0.5);
+  --gradient-primary: linear-gradient(135deg, oklch(0.6 0.19 255), oklch(0.55 0.2 275));
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.58 0.19 255);
+  --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.208 0.042 265.755);
   --muted: oklch(0.968 0.007 247.896);
@@ -141,4 +163,27 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+}
+
+@utility panel {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+@utility bg-gradient-primary {
+  background-image: var(--gradient-primary);
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@utility animate-rise {
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+body { font-family: var(--font-sans); }
+@media print {
+  .no-print { display: none !important; }
+  header { position: static !important; }
+  .panel { break-inside: avoid; box-shadow: none; }
 }
