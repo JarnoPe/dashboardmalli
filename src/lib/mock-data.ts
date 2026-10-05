@@ -67,7 +67,7 @@ const W_SUM = HOUR_WEIGHTS.reduce((a, b) => a + b, 0);
 function pickHour(r: number) {
   let x = r * W_SUM;
   for (let h = 0; h < 24; h++) {
-    x -= HOUR_WEIGHTS[h];
+    x -= HOUR_WEIGHTS[h]!;
     if (x <= 0) return h;
   }
   return 23;

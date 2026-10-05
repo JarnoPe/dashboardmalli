@@ -83,7 +83,7 @@ export function LoadingGrid() {
 
 export function downloadCsv(filename: string, rows: Record<string, string | number>[]) {
   if (!rows.length) return;
-  const keys = Object.keys(rows[0]);
+  const keys = Object.keys(rows[0]!);
   const csv = [keys.join(","), ...rows.map((r) => keys.map((k) => JSON.stringify(r[k] ?? "")).join(","))].join("\n");
   const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
   const a = document.createElement("a");

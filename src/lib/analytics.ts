@@ -16,7 +16,7 @@ export function welfareStatus(dailyAvg: number, baseline: number, longestGapHour
 
 export function longestGapHours(events: DrinkingEvent[]) {
   let max = 0;
-  for (let i = 1; i < events.length; i++) max = Math.max(max, events[i].t - events[i - 1].t);
+  for (let i = 1; i < events.length; i++) max = Math.max(max, events[i]!.t - events[i - 1]!.t);
   return max / HOUR;
 }
 
@@ -58,7 +58,7 @@ export function histogram(events: DrinkingEvent[], step = 0.5, max = 6) {
     label: `${(i * step).toFixed(1)}–${((i + 1) * step).toFixed(1)}`,
     count: 0,
   }));
-  for (const e of events) bins[Math.min(bins.length - 1, Math.floor(e.volumeLitres / step))].count++;
+  for (const e of events) bins[Math.min(bins.length - 1, Math.floor(e.volumeLitres / step))]!.count++;
   return bins;
 }
 
@@ -67,14 +67,14 @@ export function weekdayHourGrid(events: DrinkingEvent[]) {
   const grid = Array.from({ length: 7 }, () => Array(24).fill(0) as number[]);
   for (const e of events) {
     const d = new Date(e.t);
-    grid[(d.getUTCDay() + 6) % 7][d.getUTCHours()] += e.volumeLitres;
+    grid[(d.getUTCDay() + 6) % 7]![d.getUTCHours()]! += e.volumeLitres;
   }
   return grid;
 }
 
 export function hourTotals(events: DrinkingEvent[]) {
   const arr = Array(24).fill(0) as number[];
-  for (const e of events) arr[new Date(e.t).getUTCHours()] += e.volumeLitres;
+  for (const e of events) arr[new Date(e.t).getUTCHours()]! += e.volumeLitres;
   return arr;
 }
 
@@ -125,9 +125,10 @@ export function pearson(xs: number[], ys: number[]) {
   const my = ys.reduce((a, b) => a + b, 0) / n;
   let num = 0, dx = 0, dy = 0;
   for (let i = 0; i < n; i++) {
-    num += (xs[i] - mx) * (ys[i] - my);
-    dx += (xs[i] - mx) ** 2;
-    dy += (ys[i] - my) ** 2;
+    const x = xs[i]!, y = ys[i]!;
+    num += (x - mx) * (y - my);
+    dx += (x - mx) ** 2;
+    dy += (y - my) ** 2;
   }
   return dx && dy ? num / Math.sqrt(dx * dy) : 0;
 }
