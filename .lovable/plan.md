@@ -1,12 +1,13 @@
-# Finnish dashboard and stable air-quality focus
+# Finnish multi-sensor dashboard with SLEIP demo
 
 ## Build
-- Translate the complete dashboard interface, chart labels, statuses, insights, export names, and metadata into Finnish.
-- Expand the deterministic stable test data with air-quality measurements: carbon dioxide, ammonia, and fine particles alongside temperature and humidity.
-- Redesign the stable view so current air-quality readings and their trends are the primary content; retain drinking and horse sensor information as a smaller supporting section.
-- Export stable air-quality readings in CSV while keeping horse drinking-event exports unchanged.
+- Translate the complete dashboard interface, charts, statuses, insights, exports, and page metadata into Finnish.
+- Expand stable test data with carbon dioxide, ammonia, fine particles, temperature, and humidity.
+- Make air quality and other stable conditions the primary Stable view; retain drinking as supporting information.
+- Add a dedicated SLEIP Data Dashboard demo view using deterministic gait and movement metrics for the selected horse.
+- Export data appropriate to each active view.
 
 ## Technical details
-- Keep data behind the existing asynchronous mock API so the views can later move to real sensor endpoints unchanged.
-- Add focused tests for generated air-quality data and status thresholds.
-- Verify the build, tests, and desktop preview, including chart rendering and text fit.
+- Keep all demo data behind the existing asynchronous mock API for an easy later switch to real endpoints.
+- Add focused tests for air-quality status thresholds and generated SLEIP data.
+- Verify tests, build status, and the desktop preview for chart rendering and text fit.
