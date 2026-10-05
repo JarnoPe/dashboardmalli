@@ -1,5 +1,5 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { Activity, AlertTriangle, CheckCircle2, Clock, Droplets, Gauge, HeartPulse, Info, Thermometer } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle2, Clock, Droplets, Footprints, Gauge, HeartPulse, Info, MoveHorizontal, Thermometer } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, ComposedChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend,
 } from "recharts";
@@ -16,6 +16,11 @@ export function HorseView() {
   const { data } = useQuery({
     queryKey: ["horse", horse, from, to],
     queryFn: () => api.fetchHorse(horse, from, to),
+    placeholderData: keepPreviousData,
+  });
+  const { data: sleip } = useQuery({
+    queryKey: ["sleip", horse, from, to],
+    queryFn: () => api.fetchSleip(horse, from, to),
     placeholderData: keepPreviousData,
   });
   if (!data) return <LoadingGrid />;
