@@ -83,7 +83,8 @@ export function getStableData(stable: StableName, from: number, to: number) {
       litres: round1(events.filter((e) => e.t >= r.t && e.t < r.t + HOUR).reduce((a, e) => a + e.volumeLitres, 0)),
     }));
   } else {
-    const ed = envDaily(envRange, from, to);
+    // only full days, so partial first/last days don't skew the correlation
+    const ed = envDaily(envRange, from, to).filter((d) => d.t >= from && d.t + DAY - 1 <= to);
     corr = ed.map((d) => ({
       temperature: d.temperature,
       humidity: d.humidity,
@@ -109,8 +110,8 @@ export function getStableData(stable: StableName, from: number, to: number) {
     heat,
     envSeries,
     corr,
-    corrTemp: round1(pearson(corr.map((c) => c.temperature), corr.map((c) => c.litres)) * 100) / 100,
-    corrHum: round1(pearson(corr.map((c) => c.humidity), corr.map((c) => c.litres)) * 100) / 100,
+    corrTemp: Math.round(pearson(corr.map((c) => c.temperature), corr.map((c) => c.litres)) * 100) / 100,
+    corrHum: Math.round(pearson(corr.map((c) => c.humidity), corr.map((c) => c.litres)) * 100) / 100,
     latestEnv: latest,
   };
 }
